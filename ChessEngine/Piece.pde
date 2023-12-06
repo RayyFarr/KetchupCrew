@@ -48,8 +48,8 @@ void setupImages() {
 }
 
 boolean isColor(int piece, boolean whiteTurn) {
-  if(getColor(piece) == 8 && whiteTurn) return true;
-  else if(getColor(piece) == 16 && !whiteTurn) return true;
+  if(getColor(piece) == white && whiteTurn) return true;
+  else if(getColor(piece) == black && !whiteTurn) return true;
   return false;
 }
 

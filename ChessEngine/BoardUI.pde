@@ -16,8 +16,8 @@ class BoardUI
     hiddenSquare = square;
     hidePiece = true;
   }
-  void unhide(){
-    hidePiece = false; 
+  void unhide() {
+    hidePiece = false;
   }
 
   BoardUI(Board b, PVector position, float dimensions, color lc, color dc) {
@@ -30,15 +30,19 @@ class BoardUI
 
   void showSquares() {
     noStroke();
-
+    fill(255);
     for (int file = 0; file<8; file++) {
       for (int rank = 0; rank<8; rank++) {
         if ((file+rank)%2 == 0) fill(lightColor);
         else fill(darkColor);
 
         square(file*s, rank*s, s);
+
+        fill(0);
+        //text(file+rank*8, file*s + 5, rank*s+s-5);
       }
     }
+    fill(255);
   }
   void showPieces() {
     noStroke();
