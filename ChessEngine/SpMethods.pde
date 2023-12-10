@@ -31,6 +31,16 @@ PVector indexToCoord(int i) {
   return new PVector(x, y);
 }
 
+int rank(int square)
+{
+  return square/8;
+}
+
+int file(int square)  {
+  return square%8;
+}
+
+
 boolean selectedIsLegal(Move move) {
   for (int i = 0; i<moveGenerator.moves.size(); i++) {
     if (move.startSquare == moveGenerator.moves.get(i).startSquare &&  move.endSquare == moveGenerator.moves.get(i).endSquare)

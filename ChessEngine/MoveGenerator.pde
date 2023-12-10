@@ -3,36 +3,46 @@ class MoveGenerator {
   Board board;
   ArrayList<Move> moves;
 
-  int kingSquare;
-  ArrayList<Move> generateMoves(Board _board) {
+  int friendlyKingSquare;
+  int opponentKingSquare;
+  int friendlyColorIndex;
+  int opponentColorIndex;
+
+  int f1 = 61;
+  int f8 = 5;
+  int d1 = 59;
+  int d8 = 3;
+
+
+  void init() {
     moves = new ArrayList<Move>();
-    this.board = _board;
-    for (int file = 0; file<8; file++) {
-      for (int rank = 0; rank<8; rank++) {
 
-        int piece = board.squares[file + rank*8];
+    friendlyColorIndex = int(board.whiteTurn);
+    opponentColorIndex = int(!board.whiteTurn);
 
-        if (!isColor(piece, this.board.whiteTurn)) continue;
-        if (isSliding(piece))generateSlidingMoves(file + rank*8, pieceType(piece));
-        else if (pieceType(piece) == pawn) generatePawnMoves(file + rank * 8, piece);
-        else if (pieceType(piece) == knight) generateKnightMoves(file + rank * 8);
-        else if (pieceType(piece) == king) {
-          generateKingMoves(file+rank*8);
-        }
-      }
-    }
+    friendlyKingSquare = board.kingSquares[friendlyColorIndex];
+    opponentKingSquare = board.kingSquares[opponentColorIndex];
+  }
+  ArrayList<Move> generateMoves(Board _board) {
+    board = _board;
+    init();
+
+    generateKingMoves();
+    generatePawnMoves();
+    generateSlidingMoves();
+    generateKnightMoves();
 
     return moves;
   }
-  int getKingSquare(boolean whiteToMove) {
-    for (int i = 0; i<64; i++) {
-      if (pieceType(this.board.squares[i]) == king && isColor(this.board.squares[i], whiteToMove)) {
-        kingSquare = i;
-        return i;
-      }
+
+
+  boolean inCheck() {
+    ArrayList<Move> moves = generateOpponentLegalMoves(board);
+    int kingSquare=board.kingSquares[int(board.whiteTurn)];
+    for (Move move : moves) {
+      if (move.endSquare==kingSquare)return true;
     }
-    kingSquare = -1000;
-    return -1000;
+    return false;
   }
   ArrayList<Move> generateLegalMoves(Board _board) {
     this.board = _board;
@@ -40,12 +50,16 @@ class MoveGenerator {
     ArrayList<Move> legalMoves = new ArrayList<Move>();
     for (Move move : pseudoLegalMoves) {
       this.board.makeMove(move);
-      int myKingSquare = getKingSquare(!this.board.whiteTurn);
+      int myKingSquare = board.kingSquares[int(!board.whiteTurn)];
+      boolean castle = move.flag == Move.Flag.castling;
       ArrayList<Move> responses = generateMoves(this.board);
 
       boolean illegal = false;
+
       for (int i = 0; i<responses.size(); i++) {
-        if (responses.get(i).endSquare == myKingSquare) {
+        if (responses.get(i).endSquare == myKingSquare
+          ||(castle && (responses.get(i).endSquare==move.startSquare+(move.endSquare-move.startSquare )
+          || responses.get(i).endSquare==move.startSquare))) {
           illegal = true;
         }
       }
@@ -59,64 +73,135 @@ class MoveGenerator {
     moves = legalMoves;
     return legalMoves;
   }
+  ArrayList<Move> generateOpponentLegalMoves(Board _board) {
+    this.board = _board;
+    _board.switchSides();
+    ArrayList<Move> legalMoves = generateLegalMoves(board);
+    _board.switchSides();
+    moves = legalMoves;
+    return legalMoves;
+  }
+  void generateSlidingMoves() {
+    PieceList rooks = board.rooks[friendlyColorIndex];
+    for (int i = 0; i<rooks.numPieces; i++)
+      generateSlidingPieceMoves(rooks.occupiedSquares[i], rook);
 
-  void generateSlidingMoves(int startSquare, int piece) {
+    PieceList bishops = board.bishops[friendlyColorIndex];
+    for (int i = 0; i<bishops.numPieces; i++)
+      generateSlidingPieceMoves(bishops.occupiedSquares[i], bishop);
 
-    int startDirIndex = (pieceType(piece) == bishop) ? 4 : 0;
-    int endDirIndex   = (pieceType(piece) == rook) ? 4 : 8;
+    PieceList queens = board.queens[friendlyColorIndex];
+    for (int i = 0; i<queens.numPieces; i++)
+      generateSlidingPieceMoves(queens.occupiedSquares[i], queen);
+  }
 
+  void generateSlidingPieceMoves(int startSquare, int piece) {
+
+    int startDirIndex = piece == bishop ? 4 : 0;
+    int endDirIndex   = piece == rook ? 4 : 8;
 
 
     for (int dirIndex = startDirIndex; dirIndex < endDirIndex; dirIndex++) {
       int dirOffset = directionOffsets[dirIndex];
       for (int n = 0; n<distToEdge[startSquare][dirIndex]; n++) {
-       
+
         int targetSquare = startSquare + (n+1) * dirOffset;
         if (this.board.squares[targetSquare] != 0) {
           if (isColor(this.board.squares[targetSquare], this.board.whiteTurn))
             break;
           else {
-            moves.add(new Move(startSquare, targetSquare,Move.Flag.none));
+            moves.add(new Move(startSquare, targetSquare, Move.Flag.none));
             break;
           }
         }
-        moves.add(new Move(startSquare, targetSquare,Move.Flag.none));
+        moves.add(new Move(startSquare, targetSquare, Move.Flag.none));
       }
     }
   }
 
-  void generatePawnMoves(int startSquare, int piece) {
-    int c = int(this.board.whiteTurn);
+  void generatePawnMoves() {
+    PieceList pawns = board.pawns[friendlyColorIndex];
+    int col = this.board.colorToMove;
+    int turnVal = int(this.board.whiteTurn);
     int forward = 8;
-    if (c==1) forward *= -1;
-    if (this.board.squares[startSquare+forward] == 0) {
-      moves.add(new Move(startSquare, startSquare+forward,Move.Flag.pawnTwoForward));
-      if (pawnTwoJumpSquares.get(c).contains(startSquare) && this.board.squares[startSquare+forward*2] == 0)
-        moves.add(new Move(startSquare, startSquare+forward*2,Move.Flag.pawnTwoForward));
-    }
-    
-    for (int i = 0; i<pawnCaptures[c][startSquare].length; i++){
-      if (this.board.squares[pawnCaptures[c][startSquare][i]] != 0 
-        && !isColor(this.board.squares[pawnCaptures[c][startSquare][i]], this.board.whiteTurn))
-        moves.add(new Move(startSquare, pawnCaptures[c][startSquare][i],Move.Flag.none));
+    int enPassantFile = (board.gameState>>9)-1;
+    int enPassantSquare = -1;
+
+    if (enPassantFile != -1)
+      enPassantSquare = enPassantFile + (col == white?2:5)*8;
+
+    if (col==white) forward *= -1;
+    for (int i = 0; i<pawns.numPieces; i++) {
+      int startSquare = pawns.occupiedSquares[i];
+      boolean isPromotionStep
+        = rank(startSquare+forward) == 7 || rank(startSquare+forward) == 0;
+
+      if (this.board.squares[startSquare+forward] == 0) {
+        if (!isPromotionStep)moves.add(new Move(startSquare, startSquare+forward, Move.Flag.none));
+        else addPromotionMoves(startSquare, startSquare+forward);
+        if (pawnTwoJumpSquares.get(turnVal).contains(startSquare) && this.board.squares[startSquare+forward*2] == 0)
+          moves.add(new Move(startSquare, startSquare+forward*2, Move.Flag.pawnTwoForward));
+      }
+      for (int j = 0; j<pawnCaptures[turnVal][startSquare].length; j++) {
+        if (this.board.squares[pawnCaptures[turnVal][startSquare][j]] != 0
+          && !isColor(this.board.squares[pawnCaptures[turnVal][startSquare][j]], this.board.whiteTurn)) {
+          if (!isPromotionStep)
+            moves.add(new Move(startSquare, pawnCaptures[turnVal][startSquare][j], Move.Flag.none));
+          else
+            addPromotionMoves(startSquare, pawnCaptures[turnVal][startSquare][j]);
+        } else if (pawnCaptures[turnVal][startSquare][j] == enPassantSquare)
+          moves.add(new Move(startSquare, pawnCaptures[turnVal][startSquare][j], Move.Flag.isEnPassant));
+      }
     }
   }
 
-  void generateKnightMoves(int startSquare) {
-    int[] nMoves = knightMoves[startSquare];
-    for (int i = 0; i<nMoves.length; i++) {
-      if (!(this.board.squares[nMoves[i]] != empty && isColor(this.board.squares[nMoves[i]], this.board.whiteTurn)))moves.add(new Move(startSquare, nMoves[i],Move.Flag.none));
+  void generateKnightMoves() {
+    PieceList knights = board.knights[friendlyColorIndex];
+    for (int i = 0; i<knights.numPieces; i++) {
+      int startSquare = knights.occupiedSquares[i];
+      int[] nMoves = knightMoves[startSquare];
+      for (int j = 0; j<nMoves.length; j++) {
+        if (!(this.board.squares[nMoves[j]] != empty && isColor(this.board.squares[nMoves[j]], this.board.whiteTurn)))moves.add(new Move(startSquare, nMoves[j], Move.Flag.none));
+      }
     }
   }
 
-  void generateKingMoves(int startSquare) {
-    //println(kingMoves[startSquare].length);
-    for (int i = 0; i<kingMoves[startSquare].length; i++) {
-      int endSquare = kingMoves[startSquare][i];
+  void generateKingMoves() {
+    for (int i = 0; i<kingMoves[friendlyKingSquare].length; i++) {
+      int endSquare = kingMoves[friendlyKingSquare][i];
       //println(manhattanDistance(startSquare,endSquare));
       if (!isColor(this.board.squares[endSquare], this.board.whiteTurn))
-        moves.add(new Move(startSquare, endSquare,Move.Flag.none));
+        moves.add(new Move(friendlyKingSquare, endSquare, Move.Flag.none));
+
+      if ((endSquare == f1 || endSquare == f8) && hasKingsideCastleRight()) {
+        int castledSquare = endSquare+1;
+        if (board.squares[endSquare] == empty && board.squares[castledSquare] == empty) {
+          moves.add(new Move(friendlyKingSquare, castledSquare, Move.Flag.castling));
+        }
+      } else if ((endSquare == d1 || endSquare == d8) && hasQueensideCastleRight()) {
+        int castledSquare = endSquare-1;
+        if (board.squares[endSquare] == empty && board.squares[castledSquare] == empty && board.squares[castledSquare-1] == empty) {
+          moves.add(new Move(friendlyKingSquare, castledSquare, Move.Flag.castling));
+        }
+      }
     }
+  }
+
+
+  boolean hasKingsideCastleRight() {
+    int mask = board.whiteTurn ? 0b0001 : 0b0100;
+    return (board.gameState & mask) != 0;
+  }
+  boolean hasQueensideCastleRight() {
+    int mask = board.whiteTurn ? 0b0010 : 0b1000;
+    return (board.gameState & mask) != 0;
+  }
+
+  void addPromotionMoves(int startSquare, int endSquare) {
+    moves.add(new Move(startSquare, endSquare, Move.Flag.promoteToQueen));
+    moves.add(new Move(startSquare, endSquare, Move.Flag.promoteToKnight));
+    moves.add(new Move(startSquare, endSquare, Move.Flag.promoteToRook));
+    moves.add(new Move(startSquare, endSquare, Move.Flag.promoteToBishop));
   }
   void showAllMoves() {
 
