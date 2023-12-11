@@ -13,10 +13,13 @@ boolean gameOver = false;
 int tgtSquare = -1000;
 int selectedSquare = -1000;
 
-KetchupCrewLvl1 bot = new KetchupCrewLvl1();
+KetchupCrewV1 botV1 = new KetchupCrewV1();
+KetchupCrewV2 botV2 = new KetchupCrewV2();
 
 
 int LARGENUMBER = 100000000;
+
+String gameOverText;
 void setup() {
   size(1000, 1000);
   s = width/8.0;
@@ -31,12 +34,11 @@ void setup() {
    rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8
    //forced draw:7k/6p1/8/4Q3/pppp4/qqqp4/pppp1PPP/6RK w
    */
-  board = fenToBoard("7k/6p1/8/4Q3/pppp4/qqqp4/pppp1PPP/6RK w");
+  board = fenToBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
   boardUI = new BoardUI(board, new PVector(0, 0), 800, color(238, 238, 210), color(118, 150, 86));
 
   moveGenerator = new MoveGenerator();
   //frameRate(2);
-  //println(bot.search(2,-LARGENUMBER, LARGENUMBER));
   moveGenerator.generateLegalMoves(board);
 }
 
@@ -48,21 +50,27 @@ void draw() {
     boardUI.showSquares();
     moveGenerator.showPieceMoves(selectedSquare);
     boardUI.showPieces();
-    //board = fenToBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
-    //gameOver = false;
+    boardUI.showGameOverText();
+    if (key == 'r' || key == 'R') {
+      gameOver = false;
+      board = fenToBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+      moveGenerator.generateLegalMoves(board);
+
+      deSelectPiece();
+    }
     return;
   }
-  //*random*
-  //board.makeMove(moveGenerator.moves.get((int)random(moveGenerator.moves.size())));
-  if (true) {
-    moveGenerator.generateLegalMoves(board);
-    KetchupCrewLvl1.Result result=bot.search(4, null);
-    board.makeMove(result.move);
-    if (checkGameOver())return;
 
-    board.printGameState();
+
+  if (!board.whiteTurn) {
     moveGenerator.generateLegalMoves(board);
+    KetchupCrewV1.Result result=botV1.search(4, moveGenerator.moves.get(0));
+    board.makeMove(result.move);
+    board.printGameState();
+    if (!board.draw)moveGenerator.generateLegalMoves(board);
+    if (checkGameOver())return;
   }
+
   reRenderBoard();
 }
 
@@ -78,12 +86,13 @@ void mousePressed() {
     } else
       tgtSquare = xCoord + yCoord * 8;
     Move m = getMoveWithCoord(selectedSquare, tgtSquare);
-    if (!board.drawByRepetition && m != null) {
+    if (!board.draw && m != null) {
       //println(PAWN_VALUES[0][1][36]);
       board.makeMove(m);
-      if (checkGameOver())return;
       board.printGameState();
       moveGenerator.generateLegalMoves(board);
+      if (checkGameOver())return;
+
       reRenderBoard();
       deSelectPiece();
     } else {
@@ -97,14 +106,17 @@ void checkmated(boolean player) {
   gameOver = true;
   if (player == true) println("Black is victorious. White is checkmated.");
   if (player == false) println("White is victorious. Black is checkmated.");
+  gameOverText = "Checkmate!\n Press R to restart.";
 }
 void stalemate() {
   gameOver = true;
   println("Game drawed due to stalemate.");
+  gameOverText = "Stalemate!\n Press R to restart.";
 }
-void repetitionDraw() {
+void drawByRule() {
   gameOver=true;
-  println("Draw By Repetition.");
+  println("Draw By Repetition or Fifty Move Rule.");
+  gameOverText = "Draw!\n Press R to restart.";
 }
 
 boolean checkGameOver() {
@@ -114,8 +126,8 @@ boolean checkGameOver() {
     else stalemate();
 
     return true;
-  } else if (board.drawByRepetition) {
-    repetitionDraw();
+  } else if (board.draw) {
+    drawByRule();
     return true;
   }
   return false;

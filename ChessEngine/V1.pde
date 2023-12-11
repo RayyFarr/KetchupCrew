@@ -1,4 +1,4 @@
-public class KetchupCrewLvl1 {
+public class KetchupCrewV1 {
 
 
 
@@ -36,7 +36,7 @@ public class KetchupCrewLvl1 {
       if (moveGenerator.inCheck())
         return new Result(-LARGENUMBER, bestMove);
       else return new Result(0, bestMove);
-    } else if (board.drawByRepetition) {
+    } else if (board.draw) {
       return new Result(0, bestMove);
     }
 

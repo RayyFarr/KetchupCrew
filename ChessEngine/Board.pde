@@ -36,10 +36,15 @@ class Board {
 
   //fens of previous positions.
   String fenString;
-    Stack<String> repetitionHistory = new Stack();
+  Stack<String> repetitionHistory = new Stack();
+  
+  //5.5 means 5 moves and white made a move.increment by 0.5 each move.
+  float fiftyMoveCount=0;
+  Stack<Float> fiftyMoveHistory = new Stack();
+
+  boolean draw;
 
 
-  boolean drawByRepetition;
   //this works after bitwise shift to as left as possible
   int capPieceMask = 0b11111;
   int epFileMask = 0b1111;
@@ -67,7 +72,8 @@ class Board {
     gameState |= capturedPiece<<4;
 
     squares[targetSquare] = squares[startSquare];
-
+    
+    fiftyMoveCount += 0.5;
     if (pieceType == king) {
       kingSquares[int(whiteTurn)] = targetSquare;
       newCastleState &= (colorToMove == white)? 0b1100:0b0011;
@@ -87,10 +93,12 @@ class Board {
       else if (targetPosition.x == 0)
         newCastleState &= colorToMove==black?0b1101:0b0111;
     }
-
+    
+    if(pieceType == pawn) fiftyMoveCount = 0;
 
 
     if (capturedPiece != empty && !(move.flag == Move.Flag.isEnPassant)) {
+      fiftyMoveCount = 0;
       getPieceList(capPieceType, int(!whiteTurn)).removePiece(targetSquare);
     }
     if (isPromotion) {
@@ -128,11 +136,12 @@ class Board {
     gameState |= newCastleState;
     squares[startSquare] = empty;
     gameStateHistory.push(gameState);
-
+    
     fenString = board.toString();
     repetitionHistory.push(fenString);
-    drawByRepetition = isDrawByRepetition();
-      whiteTurn = !whiteTurn;
+    fiftyMoveHistory.push(fiftyMoveCount);
+    draw = isDraw();
+    whiteTurn = !whiteTurn;
     colorIndex = int(whiteTurn);
     if (whiteTurn) {
       colorToMove = white;
@@ -215,7 +224,9 @@ class Board {
     gameState=gameStateHistory.peek();
     repetitionHistory.pop();
     fenString = repetitionHistory.peek();
-    if (drawByRepetition)drawByRepetition = false;
+    fiftyMoveHistory.pop();
+    fiftyMoveCount=fiftyMoveHistory.peek();
+    draw = isDraw();
   }
 
   //piece fen notation.
@@ -260,7 +271,7 @@ class Board {
     fen += gameState&castlingMask;
     return fen;
   }
-  boolean isDrawByRepetition() {
+  boolean isDraw() {
     int count = 0;
     for (String fen : repetitionHistory) {
       if (fen.equals(fenString)) {
@@ -268,7 +279,7 @@ class Board {
       }
     }
 
-    return count >= 3;
+    return (count >= 3) || (fiftyMoveCount >= 50);
   }
   void switchSides() {
     whiteTurn = !whiteTurn;
@@ -286,7 +297,11 @@ class Board {
     gameStateHistory = new Stack();
     gameStateHistory.push(gameState);
     fenString = toString();
+    repetitionHistory = new Stack();
     repetitionHistory.push(fenString);
+    fiftyMoveCount = 0;
+    fiftyMoveHistory = new Stack();
+    fiftyMoveHistory.push(fiftyMoveCount);
     whiteTurn = true;
     colorToMove =white;
     opponent = black;
@@ -333,6 +348,7 @@ class Board {
       + "\n Color To Move : " + (colorToMove == white ? "White" : "Black")
       + "\n White King Square : " + kingSquares[1]
       + "\n Black King Square : " + kingSquares[0]
+      + "\n Fifty Move Counter: " + (int)fiftyMoveCount
       + "\n");
   }
 }

@@ -57,4 +57,13 @@ class BoardUI
     }
     if (selectedSquare != -1000)image(getPieceImage(board.squares[selectedSquare]), mouseX - s/2, mouseY - s/2, s, s);
   }
+  void showGameOverText(){
+    fill(0,150);
+    rect(0,0,width,height);
+    textAlign(CENTER,CENTER);
+    fill(255);
+    textSize(100);
+    text(gameOverText,width/2,height/2);
+    
+  }
 }
