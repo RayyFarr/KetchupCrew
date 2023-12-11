@@ -36,7 +36,7 @@ int rank(int square)
   return square/8;
 }
 
-int file(int square)  {
+int file(int square) {
   return square%8;
 }
 
@@ -75,10 +75,20 @@ boolean outsideBoard(int square) {
   else return false;
 }
 
-int manhattanDistance(int startSquare, int endSquare) {
-  return manhattanDistance(indexToCoord(startSquare), indexToCoord(endSquare));
-}
+float manhattanDistance(int startSquare, int endSquare) {
+  int startFile = file(startSquare);
+  int startRank = rank(startSquare);
 
-int manhattanDistance(PVector startPosition, PVector endPosition) {
-  return (int)abs((endPosition.x-startPosition.x) + (endPosition.y-startPosition.y));
+  int endFile = file(endSquare);
+  int endRank = rank(endSquare);
+
+
+  return abs(startFile-endFile)-abs(startRank-endRank);
+}
+ float manhattanDistance(int startSquare, PVector center) {
+  int startFile = file(startSquare);
+  int startRank = rank(startSquare);
+
+
+  return abs(startFile-center.x)-abs(startRank-center.y);
 }

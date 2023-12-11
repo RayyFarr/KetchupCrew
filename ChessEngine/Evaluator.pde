@@ -5,18 +5,19 @@ final int BISHOPVAL = 320;
 final int ROOKVAL = 500;
 final int QUEENVAL = 900;
 
-final int KNIGHTCENTERVAL=50;
-final int FIANBISHOPVAL=50;
+final int KNIGHTCENTERBONUS=100;
+final int EDGEKNIGHTDISADVANTAGE = 50;
 
-final int CASTLEBONUS=50;
+final int FIANCHETTOBONUS=50;
+
+final int CASTLEBONUS=100;
 final int CASTLERIGHTBONUS=50;
 
-final int KINGFINALRANKBONUS_END=200;
-final int KINGDISTBONUS=100;
+PVector center = new PVector(4, 4);
 
 int endGameMaterial = ROOKVAL * 2 + BISHOPVAL + KNIGHTVAL;
 int evaluate() {
-  
+
   boolean endGame = false;
 
   if (board.getPieceCount() < 4) endGame = true;
@@ -26,7 +27,7 @@ int evaluate() {
 
   float whiteEndgameWeight = endGamePower(whiteEval-board.pawns[1].numPieces*PAWNVAL);
   float blackEndgameWeight =endGamePower(blackEval-board.pawns[0].numPieces*PAWNVAL);
-  
+
   whiteEval+=sweep(1, 0, whiteEval, blackEval, whiteEndgameWeight);
   blackEval+=sweep(0, 1, blackEval, whiteEval, blackEndgameWeight);
 
@@ -57,7 +58,7 @@ int countMaterial(int colorIndex, boolean endGame) {
       if (pieceType == pawn) {
         material += PAWN_VALUES[int(endGame)][colorIndex][i];
       } else if (pieceType == knight)
-        material += calculateKnightValue(i);
+        material += calculateKnightValue(i,endGame);
       else if (pieceType == bishop)
         material += calculateBishopValue(i, colorToEval);
       else if (pieceType == rook)
@@ -65,7 +66,7 @@ int countMaterial(int colorIndex, boolean endGame) {
       else if (pieceType == queen)
         material +=  QUEENVAL;
       else if (pieceType == king) {
-        material+=getKingValue(i, endGame, colorToEval);
+        material+=getKingValue( endGame, colorToEval);
       }
     }
   }
@@ -87,19 +88,18 @@ int[][][] PAWN_VALUES = new int[][][]{
   new int[][]{
     //black.
     new int[]{
-
       0, 0, 0, 0, 0, 0, 0, 0,
 
-      100, 100, 90, 80, 80, 100, 100, 100,
+      100, 100, 100, 80, 80, 100, 100, 100,
 
-      100, 70, 100, 100, 100, 80, 90, 90,
+      80, 60, 90, 100, 100, 60, 60, 60,
 
-      70, 70, 130, 120, 120, 70, 70, 70,
+      20, 20, 100, 120, 130, 20, 20, 20,
 
-      60, 60, 110, 130, 130, 70, 60, 60,
+      60, 150, 120, 130, 130, 60, 60, 60,
 
 
-      150, 150, 150, 200, 200, 100, 100, 100,
+      150, 150, 150, 200, 200, 150, 150, 150,
 
       200, 200, 200, 300, 300, 200, 200, 200,
 
@@ -115,13 +115,13 @@ int[][][] PAWN_VALUES = new int[][][]{
       150, 150, 150, 200, 200, 150, 150, 150,
 
 
-      60, 150, 120, 130, 130, 150, 60, 60,
+      60, 150, 120, 130, 130, 60, 60, 60,
 
-      100, 100, 130, 120, 120, 70, 70, 70,
+      90, 70, 70, 120, 130, 70, 70, 70,
 
-      100, 70, 90, 100, 100, 80, 90, 90,
+      80, 70, 90, 100, 90, 80, 90, 90,
 
-      100, 100, 90, 80, 80, 100, 100, 100,
+      100, 100, 100, 80, 80, 100, 100, 100,
 
       0, 0, 0, 0, 0, 0, 0, 0
 
@@ -176,33 +176,33 @@ int[][][] PAWN_VALUES = new int[][][]{
 };
 
 
-int calculateKnightValue(int square) {
-
+int calculateKnightValue(int square,boolean endGame) {
+  int file = file(square);
   return KNIGHTVAL +
-    (int)map(dist(file(square), rank(square), 4, 4), 0, 4, KNIGHTCENTERVAL, 0);
+    (int)map(manhattanDistance(square, center), 0, 16, int(!endGame) * KNIGHTCENTERBONUS, 0)
+    - ((file == 7 || file == 0) ? EDGEKNIGHTDISADVANTAGE : 0);
 }
 int calculateBishopValue(int square, int colorToMove) {
   int material = BISHOPVAL;
   if (colorToMove == white && (square == 54 || square == 49))
-    material+=FIANBISHOPVAL;
+    material+=FIANCHETTOBONUS;
   else if (colorToMove == black && (square == 9 || square == 14))
-    material+=FIANBISHOPVAL;
+    material+=FIANCHETTOBONUS;
 
   return material;
 }
 //multiply this with total material.
-int getKingValue(int kingSquare, boolean endGame, int colorToMove) {
+int getKingValue(boolean endGame, int colorToMove) {
   int value = 0;
 
   if (!endGame) {
 
 
     if (colorToMove == white) {
-      if ((board.gameState&0b0011) == 0) value -= CASTLERIGHTBONUS;
+      if ((board.gameState&0b0011) == 0 && !board.whiteCastled) value -= CASTLERIGHTBONUS;
       else if (board.whiteCastled)value += CASTLEBONUS;
     } else if (colorToMove == black) {
-      if ((board.gameState&0b1100) == 0)
-        value -= CASTLERIGHTBONUS;
+      if ((board.gameState&0b1100) == 0 && !board.whiteCastled)value -= CASTLERIGHTBONUS;
       else if (board.blackCastled)value += CASTLEBONUS;
     }
   }

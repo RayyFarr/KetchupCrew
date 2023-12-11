@@ -69,6 +69,7 @@ void draw() {
     board.printGameState();
     if (!board.draw)moveGenerator.generateLegalMoves(board);
     if (checkGameOver())return;
+    println("Evaluation for " + (board.whiteTurn? "white : " : "black : ")+ evaluate());
   }
 
   reRenderBoard();
@@ -92,6 +93,7 @@ void mousePressed() {
       board.printGameState();
       moveGenerator.generateLegalMoves(board);
       if (checkGameOver())return;
+      println("Evaluation for " + (board.whiteTurn? "white : " : "black : ")+ evaluate());
 
       reRenderBoard();
       deSelectPiece();

@@ -87,7 +87,7 @@ void computeMoveData() {
       IntList sqKingMoves = new IntList();
 
       for (int i = 0; i<directionOffsets.length; i++) {
-        if (!outsideBoard(squareIndex + directionOffsets[i]) && manhattanDistance(position, indexToCoord(squareIndex + directionOffsets[i])) <= 2)
+        if (!outsideBoard(squareIndex + directionOffsets[i]) && manhattanDistance(squareIndex, indexToCoord(squareIndex + directionOffsets[i])) <= 2)
           sqKingMoves.append(squareIndex + directionOffsets[i]);
       }
       kingMoves[squareIndex] = sqKingMoves.toArray();
