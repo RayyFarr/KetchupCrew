@@ -5,13 +5,16 @@ final int BISHOPVAL = 320;
 final int ROOKVAL = 500;
 final int QUEENVAL = 900;
 
-final int KNIGHTCENTERBONUS=100;
-final int EDGEKNIGHTDISADVANTAGE = 50;
-
 final int FIANCHETTOBONUS=50;
+
+final int BISHOPPAIRBONUS=50;
 
 final int CASTLEBONUS=100;
 final int CASTLERIGHTBONUS=50;
+
+
+
+final int DEVELOPMENTBONUS = 50;
 
 PVector center = new PVector(4, 4);
 
@@ -56,11 +59,11 @@ int countMaterial(int colorIndex, boolean endGame) {
     if (getColor(board.squares[i]) == colorToEval) {
       int pieceType = pieceType(board.squares[i]);
       if (pieceType == pawn) {
-        material += PAWN_VALUES[int(endGame)][colorIndex][i];
+        material += PAWNVAL + PAWN_VALUES[int(endGame)][colorIndex][i];
       } else if (pieceType == knight)
-        material += calculateKnightValue(i,endGame);
+        material += KNIGHT_VALUES[int(endGame)][colorIndex][i];
       else if (pieceType == bishop)
-        material += calculateBishopValue(i, colorToEval);
+        material += BISHOP_VALUES[int(endGame)][colorIndex][i];
       else if (pieceType == rook)
         material += ROOKVAL;
       else if (pieceType == queen)
@@ -70,7 +73,7 @@ int countMaterial(int colorIndex, boolean endGame) {
       }
     }
   }
-  return material;
+  return material; 
 }
 
 
@@ -79,118 +82,8 @@ float endGamePower(int materialWithoutPawns) {
   return 1 - min(1, materialWithoutPawns*mult);
 }
 
-//first array is referring to game phase where index 0 is opening
-//and index 1 is endgame.
-//the second array indecies refer to color.
-//the last array refers to material values based on position
-int[][][] PAWN_VALUES = new int[][][]{
-  //Opening material values for pawns based on square
-  new int[][]{
-    //black.
-    new int[]{
-      0, 0, 0, 0, 0, 0, 0, 0,
-
-      100, 100, 100, 80, 80, 100, 100, 100,
-
-      80, 60, 90, 100, 100, 60, 60, 60,
-
-      20, 20, 100, 120, 130, 20, 20, 20,
-
-      60, 150, 120, 130, 130, 60, 60, 60,
 
 
-      150, 150, 150, 200, 200, 150, 150, 150,
-
-      200, 200, 200, 300, 300, 200, 200, 200,
-
-      0, 0, 0, 0, 0, 0, 0, 0
-
-    },
-    //white.
-    new int[]{
-      0, 0, 0, 0, 0, 0, 0, 0,
-
-      200, 200, 200, 300, 300, 200, 200, 200,
-
-      150, 150, 150, 200, 200, 150, 150, 150,
-
-
-      60, 150, 120, 130, 130, 60, 60, 60,
-
-      90, 70, 70, 120, 130, 70, 70, 70,
-
-      80, 70, 90, 100, 90, 80, 90, 90,
-
-      100, 100, 100, 80, 80, 100, 100, 100,
-
-      0, 0, 0, 0, 0, 0, 0, 0
-
-    }
-
-  },
-  //endgame material values of pawns based on squares
-  new int[][]{
-
-    //white.
-    new int[]{
-      0, 0, 0, 0, 0, 0, 0, 0,
-
-      100, 100, 100, 100, 100, 100, 100, 100,
-
-      100, 100, 100, 100, 100, 100, 100, 100,
-
-      200, 200, 200, 200, 200, 200, 200, 200,
-
-      400, 400, 400, 400, 400, 400, 400, 400,
-
-
-      400, 400, 400, 400, 400, 400, 400, 400,
-
-      500, 500, 500, 500, 500, 500, 500, 500,
-
-      0, 0, 0, 0, 0, 0, 0, 0
-
-
-    },
-    //black.
-    new int[]{
-      0, 0, 0, 0, 0, 0, 0, 0,
-
-      500, 500, 500, 500, 500, 500, 500, 500,
-
-      400, 400, 400, 400, 400, 400, 400, 400,
-
-
-      400, 400, 400, 400, 400, 400, 400, 400,
-
-      200, 200, 200, 200, 200, 200, 200, 200,
-
-      100, 100, 100, 100, 100, 100, 100, 100,
-
-      100, 100, 100, 100, 100, 100, 100, 100,
-
-      0, 0, 0, 0, 0, 0, 0, 0
-
-    }
-  }
-};
-
-
-int calculateKnightValue(int square,boolean endGame) {
-  int file = file(square);
-  return KNIGHTVAL +
-    (int)map(manhattanDistance(square, center), 0, 16, int(!endGame) * KNIGHTCENTERBONUS, 0)
-    - ((file == 7 || file == 0) ? EDGEKNIGHTDISADVANTAGE : 0);
-}
-int calculateBishopValue(int square, int colorToMove) {
-  int material = BISHOPVAL;
-  if (colorToMove == white && (square == 54 || square == 49))
-    material+=FIANCHETTOBONUS;
-  else if (colorToMove == black && (square == 9 || square == 14))
-    material+=FIANCHETTOBONUS;
-
-  return material;
-}
 //multiply this with total material.
 int getKingValue(boolean endGame, int colorToMove) {
   int value = 0;

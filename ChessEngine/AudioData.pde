@@ -1,7 +1,14 @@
 import processing.sound.*;
 
 
-public Sound  moveSound;
-public Sound captureSound;
-public Sound checkSound;
-public Sound checkMateSound;
+public SoundFile  moveSound;
+public SoundFile captureSound;
+public SoundFile checkSound;
+public SoundFile checkMateSound;
+
+void initializeSound(){
+  moveSound = new SoundFile(this,"move.mp3");
+
+  checkMateSound = new SoundFile(this,"gameEnd.mp3");
+  
+}

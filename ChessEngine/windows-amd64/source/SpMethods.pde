@@ -22,7 +22,6 @@ PImage getPieceImage(int i) {
 void deSelectPiece() {
   selectedSquare = -1000;
   tgtSquare = -1000;
-  boardUI.unhide();
 }
 PVector indexToCoord(int i) {
   int y = i/8;

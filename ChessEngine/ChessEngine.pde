@@ -40,13 +40,15 @@ void setup() {
   moveGenerator = new MoveGenerator();
   //frameRate(2);
   moveGenerator.generateLegalMoves(board);
+
+
+  initializeSound();
 }
 
 void draw() {
   //println(moveGenerator.inCheck());
 
   if (gameOver) {
-
     boardUI.showSquares();
     moveGenerator.showPieceMoves(selectedSquare);
     boardUI.showPieces();
@@ -54,6 +56,7 @@ void draw() {
     if (key == 'r' || key == 'R') {
       gameOver = false;
       board = fenToBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+      boardUI.playedMove=null;
       moveGenerator.generateLegalMoves(board);
 
       deSelectPiece();
@@ -62,9 +65,11 @@ void draw() {
   }
 
 
-  if (!board.whiteTurn) {
+  if (!board.whiteTurn && boardUI.animationDone) {
     moveGenerator.generateLegalMoves(board);
     KetchupCrewV1.Result result=botV1.search(4, moveGenerator.moves.get(0));
+    boardUI.playMove(result.move);
+
     board.makeMove(result.move);
     board.printGameState();
     if (!board.draw)moveGenerator.generateLegalMoves(board);
@@ -80,15 +85,15 @@ void mousePressed() {
   if (mouseButton == LEFT) {
     int xCoord = (int)(mouseX/s);
     int yCoord = (int)(mouseY/s);
-    if (board.squares[xCoord + yCoord * 8] != 0 && selectedSquare == -1000) {
+    if (getColor(board.squares[xCoord + yCoord * 8])==board.colorToMove|| selectedSquare == -1000) {
       selectedSquare = xCoord + yCoord * 8;
-      boardUI.hide(selectedSquare);
       return;
     } else
       tgtSquare = xCoord + yCoord * 8;
     Move m = getMoveWithCoord(selectedSquare, tgtSquare);
     if (!board.draw && m != null) {
       //println(PAWN_VALUES[0][1][36]);
+      boardUI.playMove(m);
       board.makeMove(m);
       board.printGameState();
       moveGenerator.generateLegalMoves(board);
