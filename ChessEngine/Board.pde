@@ -36,8 +36,8 @@ class Board {
 
   //fens of previous positions.
   String fenString;
-  Stack<String> repetitionHistory = new Stack();
-  
+  Stack<String> repetpositionHistory = new Stack();
+
   //5.5 means 5 moves and white made a move.increment by 0.5 each move.
   float fiftyMoveCount=0;
   Stack<Float> fiftyMoveHistory = new Stack();
@@ -45,7 +45,7 @@ class Board {
   boolean draw;
 
 
-  //this works after bitwise shift to as left as possible
+  //this works after bitwise shift to as left as sible
   int capPieceMask = 0b11111;
   int epFileMask = 0b1111;
   int castlingMask = 0b1111;
@@ -65,14 +65,14 @@ class Board {
 
     int newCastleState = gameState & castlingMask;
     boolean isPromotion = move.isPromotion();
-    PVector startPosition = indexToCoord(startSquare);
-    PVector targetPosition = indexToCoord(targetSquare);
+    PVector startposition = indexToCoord(startSquare);
+    PVector targetposition = indexToCoord(targetSquare);
 
     gameState = 0;
     gameState |= capturedPiece<<4;
 
     squares[targetSquare] = squares[startSquare];
-    
+
     fiftyMoveCount += 0.5;
     if (pieceType == king) {
       kingSquares[int(whiteTurn)] = targetSquare;
@@ -83,18 +83,18 @@ class Board {
 
     if (pieceType==rook)
     {
-      if (startPosition.x == 7)
+      if (startposition.x == 7)
         newCastleState &= colorToMove==white?0b1110:0b1011;
-      else if (startPosition.x == 0)
+      else if (startposition.x == 0)
         newCastleState &= colorToMove==white?0b1101:0b0111;
     } else if (pieceType(capturedPiece) == rook) {
-      if (targetPosition.x == 7)
+      if (targetposition.x == 7)
         newCastleState &= colorToMove==black?0b1110:0b1011;
-      else if (targetPosition.x == 0)
+      else if (targetposition.x == 0)
         newCastleState &= colorToMove==black?0b1101:0b0111;
     }
-    
-    if(pieceType == pawn) fiftyMoveCount = 0;
+
+    if (pieceType == pawn) fiftyMoveCount = 0;
 
 
     if (capturedPiece != empty && !(move.flag == Move.Flag.isEnPassant)) {
@@ -116,10 +116,10 @@ class Board {
         squares[epSquare] = 0;
         break;
       case Move.Flag.pawnTwoForward:
-        gameState |= ((int)targetPosition.x+1)<<9;
+        gameState |= ((int)targetposition.x+1)<<9;
         break;
       case Move.Flag.castling:
-        boolean kingSide = targetPosition.x==6 ? true:false;
+        boolean kingSide = targetposition.x==6 ? true:false;
         int rookMoveFrom = kingSide ? targetSquare+1 : targetSquare-2;
         int rookMoveTo = kingSide ? targetSquare-1:targetSquare+1;
 
@@ -136,9 +136,9 @@ class Board {
     gameState |= newCastleState;
     squares[startSquare] = empty;
     gameStateHistory.push(gameState);
-    
+
     fenString = board.toString();
-    repetitionHistory.push(fenString);
+    repetpositionHistory.push(fenString);
     fiftyMoveHistory.push(fiftyMoveCount);
     draw = isDraw();
     whiteTurn = !whiteTurn;
@@ -164,7 +164,7 @@ class Board {
     int capPieceType = pieceType(capturedPiece);
 
     boolean isPromotion = move.isPromotion();
-    PVector targetPosition = indexToCoord(targetSquare);
+    PVector targetposition = indexToCoord(targetSquare);
 
     whiteTurn = !whiteTurn;
     colorIndex = int(whiteTurn);
@@ -209,7 +209,7 @@ class Board {
         break;
 
       case Move.Flag.castling:
-        boolean kingSide = targetPosition.x==6 ? true:false;
+        boolean kingSide = targetposition.x==6 ? true:false;
         int rookMoveFrom = kingSide ? targetSquare+1 : targetSquare-2;
         int rookMoveTo = kingSide ? targetSquare-1:targetSquare+1;
         if (colorToMove==white)whiteCastled = false;
@@ -222,8 +222,8 @@ class Board {
     }
     gameStateHistory.pop();
     gameState=gameStateHistory.peek();
-    repetitionHistory.pop();
-    fenString = repetitionHistory.peek();
+    repetpositionHistory.pop();
+    fenString = repetpositionHistory.peek();
     fiftyMoveHistory.pop();
     fiftyMoveCount=fiftyMoveHistory.peek();
     draw = isDraw();
@@ -273,7 +273,7 @@ class Board {
   }
   boolean isDraw() {
     int count = 0;
-    for (String fen : repetitionHistory) {
+    for (String fen : repetpositionHistory) {
       if (fen.equals(fenString)) {
         count++;
       }
@@ -297,8 +297,8 @@ class Board {
     gameStateHistory = new Stack();
     gameStateHistory.push(gameState);
     fenString = toString();
-    repetitionHistory = new Stack();
-    repetitionHistory.push(fenString);
+    repetpositionHistory = new Stack();
+    repetpositionHistory.push(fenString);
     fiftyMoveCount = 0;
     fiftyMoveHistory = new Stack();
     fiftyMoveHistory.push(fiftyMoveCount);
@@ -337,7 +337,17 @@ class Board {
     return knights[0].numPieces+bishops[0].numPieces+rooks[0].numPieces+queens[0].numPieces
       +knights[1].numPieces+bishops[1].numPieces+rooks[1].numPieces+queens[1].numPieces;
   }
-
+  boolean hasCheckmatingMaterial(boolean turn) {
+    int index = int(turn);
+    if (pawns[index].numPieces != 0) {
+      if (knights[index].numPieces+bishops[index].numPieces+rooks[index].numPieces+queens[index].numPieces == 0)
+        return false;
+      else if (knights[index].numPieces <= 2)return false;
+      else if (bishops[index].numPieces == 1)return false;
+      else if (bishops[index].numPieces == 1)return false;
+    }
+    return true;
+  }
   void printGameState() {
     println("Move : " + plyCount/2 + "\n Ply : " + plyCount
       + "\n En Passant File : " + (gameState>>9)

@@ -23,7 +23,7 @@ int evaluate() {
 
   boolean endGame = false;
 
-  if (board.getPieceCount() < 4) endGame = true;
+  if (board.getPieceCount() <= 4) endGame = true;
   int whiteEval = countMaterial(1, endGame);
   int blackEval = countMaterial(0, endGame);
 
@@ -59,7 +59,7 @@ int countMaterial(int colorIndex, boolean endGame) {
     if (getColor(board.squares[i]) == colorToEval) {
       int pieceType = pieceType(board.squares[i]);
       if (pieceType == pawn) {
-        material += PAWNVAL + PAWN_VALUES[int(endGame)][colorIndex][i];
+        material += PAWN_VALUES[int(endGame)][colorIndex][i];
       } else if (pieceType == knight)
         material += KNIGHT_VALUES[int(endGame)][colorIndex][i];
       else if (pieceType == bishop)

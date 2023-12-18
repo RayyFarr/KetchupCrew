@@ -1,5 +1,5 @@
 class KetchupCrewV2 {
-
+  
   class Result {
     int score;
     Move move;
@@ -14,11 +14,12 @@ class KetchupCrewV2 {
       return new Result(evaluate(), bestMove);
     }
 
-    ArrayList<Move> moves = moveGenerator.generateLegalMoves(board);
-
+    ArrayList<Move> moves = moveGenerator.orderMoves(moveGenerator.generateLegalMoves(board));
+    
+    
     if (moves.size() == 0) {
       if (moveGenerator.inCheck())
-        return new Result(-LARGENUMBER, bestMove);
+        return new Result(-(LARGENUMBER+depth), bestMove);
       else return new Result(0, bestMove);
     } else if (board.draw) {
       return new Result(0, bestMove);
@@ -37,7 +38,7 @@ class KetchupCrewV2 {
       }
 
       alpha = Math.max(alpha, eval);
-      if (alpha >= beta) break;  // beta cut-off
+      if (alpha > beta) break;  // beta cut-off
     }
 
     return new Result(bestScore, bestMove);

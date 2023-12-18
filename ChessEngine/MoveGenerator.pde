@@ -35,7 +35,19 @@ class MoveGenerator {
     return moves;
   }
 
-
+  ArrayList<Move> orderMoves(ArrayList<Move> moves) {
+    ArrayList<Move> captures = new ArrayList<Move>();
+    Iterator<Move> iter = moves.iterator();
+    while (iter.hasNext()) {
+      Move move = iter.next();
+      if (board.squares[move.endSquare] != empty) {
+        captures.add(move);
+        iter.remove();
+      }
+    }
+    captures.addAll(moves);
+    return captures;
+  }
   boolean inCheck() {
     ArrayList<Move> moves = generateOpponentLegalMoves(board);
     int kingSquare=board.kingSquares[int(board.whiteTurn)];
@@ -73,6 +85,7 @@ class MoveGenerator {
     moves = legalMoves;
     return legalMoves;
   }
+
   ArrayList<Move> generateOpponentLegalMoves(Board _board) {
     this.board = _board;
     _board.switchSides();
@@ -206,25 +219,13 @@ class MoveGenerator {
   void showAllMoves() {
 
     for (int i = 0; i<moves.size(); i++) {
-      PVector startPos = indexToCoord(moves.get(i).startSquare);
-      PVector endPos = indexToCoord(moves.get(i).endSquare);
+      PVector start = indexToCoord(moves.get(i).startSquare);
+      PVector end = indexToCoord(moves.get(i).endSquare);
       fill(186, 202, 68);
-      square(startPos.x*s, startPos.y*s, s);
+      square(start.x*s, start.y*s, s);
       fill(0, 100);
-      circle(endPos.x*s + s/2, endPos.y*s + s/2, s/2);
+      circle(end.x*s + s/2, end.y*s + s/2, s/2);
     }
   }
-  void showPieceMoves(int startSquare) {
 
-    PVector startPos = indexToCoord(startSquare);
-    fill(186, 202, 68);
-    square(startPos.x*s, startPos.y*s, s);
-
-    for (int i = 0; i<moves.size(); i++) {
-      if (moves.get(i).startSquare != startSquare) continue;
-      PVector endPos = indexToCoord(moves.get(i).endSquare);
-      fill(0, 100);
-      square(endPos.x*s, endPos.y*s, s);
-    }
-  }
 }

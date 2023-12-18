@@ -1,8 +1,8 @@
 class BoardUI
 {
-
-  PVector pos;
   float dim;
+  float inc;
+
 
   color lightColor = color(#34CBAE);
   color darkColor = color(#CB3451);
@@ -17,10 +17,10 @@ class BoardUI
   boolean animationDone = true;
   float animationEasing = 0.25;
 
-  BoardUI(Board b, PVector position, float dimensions, color lc, color dc) {
+  BoardUI(Board b, float dimensions, color lc, color dc) {
     displayBoard = b;
-    pos = position;
     dim = dimensions;
+    inc = dimensions/8.0;
     lightColor = lc;
     darkColor = dc;
   }
@@ -34,25 +34,22 @@ class BoardUI
   }
   void showSquares() {
     noStroke();
-    fill(255);
     for (int file = 0; file<8; file++) {
       for (int rank = 0; rank<8; rank++) {
         if ((file+rank)%2 == 0) fill(lightColor);
         else fill(darkColor);
 
-        square(file*s, rank*s, s);
+        square(file*inc, rank*inc, inc);
 
-        fill(0);
         //text(file+rank*8, file*s + 5, rank*s+s-5);
       }
     }
     if (playedMove!=null) {
       fill(#0FF080);
-      square(file(playedMove.startSquare)*s, rank(playedMove.startSquare)*s, s);
+      square(file(playedMove.startSquare)*inc, rank(playedMove.startSquare)*inc, inc);
       fill(#28D75D);
-      square(file(playedMove.endSquare)*s, rank(playedMove.endSquare)*s, s);
+      square(file(playedMove.endSquare)*inc, rank(playedMove.endSquare)*inc, inc);
     }
-    fill(255);
   }
   void showPieces() {
     noStroke();
@@ -60,10 +57,10 @@ class BoardUI
     for (int file = 0; file<8; file++) {
       for (int rank = 0; rank<8; rank++) {
         isAnimationPiece = playedMove != null && file+rank*8==playedMove.endSquare && !animationDone;
-        if (!isAnimationPiece) {
+        if (!isAnimationPiece && board.squares[file+rank*8] != empty) {
 
           int piece = board.squares[getIndex(file, rank)];
-          image(getPieceImage(piece), file*s, rank*s, s, s);
+          image(getPieceImage(piece), file*inc, rank*inc, inc, inc);
         }
       }
     }
@@ -76,7 +73,7 @@ class BoardUI
       float movedX = map(animationProgress, 0, 100, file(playedMove.startSquare), file(playedMove.endSquare));
       float movedY = map(animationProgress, 0, 100, rank(playedMove.startSquare), rank(playedMove.endSquare));
       int piece = board.squares[playedMove.endSquare];
-      image(getPieceImage(piece), movedX*s, movedY*s, s, s);
+      image(getPieceImage(piece), movedX*inc, movedY*inc, inc,inc);
     }
   }
   void showGameOverText() {
@@ -84,7 +81,7 @@ class BoardUI
     rect(0, 0, width, height);
     textAlign(CENTER, CENTER);
     fill(255);
-    textSize(100);
+    textSize(80);
     text(gameOverText, width/2, height/2);
   }
   void playSounds(Move move) {
@@ -101,6 +98,23 @@ class BoardUI
     moveSound.play();
   }
 
-  void animate() {
+  void showPieceMoves(int startSquare) {
+
+    PVector start = indexToCoord(startSquare);
+    fill(186, 202, 68);
+    square(start.x*inc, start.y*inc, inc);
+
+    for (int i = 0; i<moveGenerator.moves.size(); i++) {
+      if (moveGenerator.moves.get(i).startSquare != startSquare) continue;
+      int endSquare = moveGenerator.moves.get(i).endSquare;
+      PVector end = indexToCoord(moveGenerator.moves.get(i).endSquare);
+      fill(0, 70);
+      if(board.squares[endSquare] == empty)circle(end.x*inc+inc/2, end.y*inc+inc/2, inc/2);
+      else{
+        rectMode(CENTER);
+        square(end.x*inc+inc/2, end.y*inc+inc/2, inc-inc/10);
+        rectMode(CORNER);
+      }
+    }
   }
 }
