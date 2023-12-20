@@ -44,11 +44,4 @@ class KetchupCrewV2 extends Thread {
     return new Result(bestScore, bestMove);
   }
 
-
-  Result result;
-  @Override
-    public void run() {
-    ArrayList<Move> moves = moveGenerator.generateLegalMoves(board);
-    result = search(6, moves.get(0), -LARGENUMBER, LARGENUMBER);
-  }
 }

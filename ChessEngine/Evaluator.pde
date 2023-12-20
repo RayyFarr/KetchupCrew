@@ -23,7 +23,7 @@ int evaluate() {
 
   boolean endGame = false;
 
-  if (board.getPieceCount() <= 4) endGame = true;
+  if (board.getPieceCount() < 4) endGame = true;
   int whiteEval = countMaterial(1, endGame);
   int blackEval = countMaterial(0, endGame);
 

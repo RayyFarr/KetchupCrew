@@ -8,13 +8,13 @@ public class KetchupCrewV1 {
     }
 
     ArrayList<Move> moves = moveGenerator.generateLegalMoves(board);
-    int numpositions = 0;
+    int numPositions = 0;
     for (Move move : moves) {
       board.makeMove(move);
-      numpositions += moveGenerationTest(depth-1);
+      numPositions += moveGenerationTest(depth-1);
       board.unMakeMove(move);
     }
-    return numpositions;
+    return numPositions;
   }
   class Result {
     int score;

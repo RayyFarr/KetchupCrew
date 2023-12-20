@@ -1,3 +1,4 @@
+
 class Board {
   int[] squares = new int[64];
 
