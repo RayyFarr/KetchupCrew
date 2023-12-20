@@ -1,5 +1,6 @@
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.concurrent.atomic.*;
 float s;
 
 Board board = new Board();
@@ -17,8 +18,8 @@ KetchupCrewV1 botV1 = new KetchupCrewV1();
 KetchupCrewV2 botV2 = new KetchupCrewV2();
 
 
-float whiteTimeLeft = 60;
-float blackTimeLeft = 60;
+float whiteTimeLeft = 6000;
+float blackTimeLeft = 6000;
 
 
 float lastRecordedTime = 0;
@@ -77,28 +78,30 @@ void draw() {
     }
     return;
   }
+  if (!botV2.isAlive() && !board.whiteTurn) {
+    lastRecordedTime = millis()/1000.0;
+    t1 = lastRecordedTime;
+    botV2 = new KetchupCrewV2();
+    botV2.start();
+    reRenderBoard();
+    return;
+  }
+  if (!botV2.isAlive() && !board.whiteTurn && boardUI.animationDone) {
 
-  if (!board.whiteTurn && boardUI.animationDone) {
-    int depth = board.getPieceCount() <=4?5:4;
-    t1 = millis()/1000.0;
-
-    //KetchupCrewV1.Result result=botV1.search(depth, moveGenerator.moves.get(0));
-    KetchupCrewV2.Result result=botV2.search(depth, moveGenerator.moves.get(0), -LARGENUMBER, LARGENUMBER);
-    t2 = millis()/1000.0;
-
-    blackTimeLeft-=t2-t1;
-
-    t1 = t2;
+    KetchupCrewV2.Result result = botV2.result;
     boardUI.playMove(result.move);
 
     board.makeMove(result.move);
     board.printGameState();
-    println(board.colorToMove == white? 1:-1);
-    println(evaluate());
+
+    t2 = millis()/1000.0;
+
+    blackTimeLeft = t2-t1;
+    botV2.interrupt();
+
     if (!board.draw)moveGenerator.generateLegalMoves(board);
     if (checkGameOver())return;
   }
-
   reRenderBoard();
 }
 
@@ -107,7 +110,7 @@ void mousePressed() {
   if (mouseButton == LEFT) {
     int xCoord = (int)(mouseX/boardUI.inc);
     int yCoord = (int)(mouseY/boardUI.inc);
-    if ((getColor(board.squares[xCoord + yCoord * 8])==board.colorToMove|| selectedSquare == -1000) && boardUI.animationDone) {
+    if (mouseY < width && ((getColor(board.squares[xCoord + yCoord * 8])==board.colorToMove|| selectedSquare == -1000)) && boardUI.animationDone) {
       selectedSquare = xCoord + yCoord * 8;
       return;
     } else
@@ -145,7 +148,7 @@ void stalemate() {
 }
 void drawByRule() {
   gameOver=true;
-  println("Draw By Repetposition or Fifty Move Rule.");
+  println("Draw By Repetition or Fifty Move Rule.");
   gameOverText = "Draw!\n Press R to restart.";
 }
 void flag(String playerName, boolean draw) {
@@ -166,7 +169,7 @@ void drawInfo() {
   text("White time left : \n" + round(whiteTimeLeft -(board.whiteTurn?millis()/1000.0-lastRecordedTime:0)) + " seconds", 0+10, width+y/2);
 
   textAlign(RIGHT);
-  text("Black time left : \n" + blackTimeLeft + " seconds", width-10, width+y/2);
+  text("Black time left : \n" + round(blackTimeLeft-(!board.whiteTurn?millis()/1000.0-lastRecordedTime:0)) + " seconds", width-10, width+y/2);
 }
 
 boolean checkGameOver() {

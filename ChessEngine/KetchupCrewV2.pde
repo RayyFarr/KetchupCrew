@@ -1,5 +1,5 @@
-class KetchupCrewV2 {
-  
+class KetchupCrewV2 extends Thread {
+
   class Result {
     int score;
     Move move;
@@ -15,8 +15,8 @@ class KetchupCrewV2 {
     }
 
     ArrayList<Move> moves = moveGenerator.orderMoves(moveGenerator.generateLegalMoves(board));
-    
-    
+
+
     if (moves.size() == 0) {
       if (moveGenerator.inCheck())
         return new Result(-(LARGENUMBER+depth), bestMove);
@@ -42,5 +42,13 @@ class KetchupCrewV2 {
     }
 
     return new Result(bestScore, bestMove);
+  }
+
+
+  Result result;
+  @Override
+    public void run() {
+    ArrayList<Move> moves = moveGenerator.generateLegalMoves(board);
+    result = search(6, moves.get(0), -LARGENUMBER, LARGENUMBER);
   }
 }

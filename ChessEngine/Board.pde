@@ -36,7 +36,7 @@ class Board {
 
   //fens of previous positions.
   String fenString;
-  Stack<String> repetpositionHistory = new Stack();
+  Stack<String> reptitionHistory = new Stack();
 
   //5.5 means 5 moves and white made a move.increment by 0.5 each move.
   float fiftyMoveCount=0;
@@ -138,7 +138,7 @@ class Board {
     gameStateHistory.push(gameState);
 
     fenString = board.toString();
-    repetpositionHistory.push(fenString);
+    reptitionHistory.push(fenString);
     fiftyMoveHistory.push(fiftyMoveCount);
     draw = isDraw();
     whiteTurn = !whiteTurn;
@@ -222,8 +222,8 @@ class Board {
     }
     gameStateHistory.pop();
     gameState=gameStateHistory.peek();
-    repetpositionHistory.pop();
-    fenString = repetpositionHistory.peek();
+    reptitionHistory.pop();
+    fenString = reptitionHistory.peek();
     fiftyMoveHistory.pop();
     fiftyMoveCount=fiftyMoveHistory.peek();
     draw = isDraw();
@@ -273,7 +273,7 @@ class Board {
   }
   boolean isDraw() {
     int count = 0;
-    for (String fen : repetpositionHistory) {
+    for (String fen : reptitionHistory) {
       if (fen.equals(fenString)) {
         count++;
       }
@@ -297,8 +297,8 @@ class Board {
     gameStateHistory = new Stack();
     gameStateHistory.push(gameState);
     fenString = toString();
-    repetpositionHistory = new Stack();
-    repetpositionHistory.push(fenString);
+    reptitionHistory = new Stack();
+    reptitionHistory.push(fenString);
     fiftyMoveCount = 0;
     fiftyMoveHistory = new Stack();
     fiftyMoveHistory.push(fiftyMoveCount);
