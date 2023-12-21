@@ -70,7 +70,7 @@ class MoveGenerator {
 
       for (int i = 0; i<responses.size(); i++) {
         if (responses.get(i).endSquare == myKingSquare
-          ||(castle && (responses.get(i).endSquare==move.startSquare+(move.endSquare-move.startSquare )
+          ||(castle && (responses.get(i).endSquare==move.startSquare+(move.endSquare-move.startSquare)/2
           || responses.get(i).endSquare==move.startSquare))) {
           illegal = true;
         }

@@ -340,13 +340,7 @@ class Board {
   }
   boolean hasCheckmatingMaterial(boolean turn) {
     int index = int(turn);
-    if (pawns[index].numPieces != 0) {
-      if (knights[index].numPieces+bishops[index].numPieces+rooks[index].numPieces+queens[index].numPieces == 0)
-        return false;
-      else if (knights[index].numPieces <= 2)return false;
-      else if (bishops[index].numPieces == 1)return false;
-      else if (bishops[index].numPieces == 1)return false;
-    }
+
     return true;
   }
   void printGameState() {

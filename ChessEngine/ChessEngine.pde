@@ -17,11 +17,11 @@ KetchupCrewV1 botV1 = new KetchupCrewV1();
 KetchupCrewV2 botV2 = new KetchupCrewV2();
 
 
-float whiteTime = 60;
-float blackTime = 60;
+float whiteTime = 300;
+float blackTime = 300;
 
-float whiteTimeLeft = 60;
-float blackTimeLeft = 60;
+float whiteTimeLeft = 300;
+float blackTimeLeft = 300;
 
 
 float lastRecordedTime = 0;
@@ -49,7 +49,7 @@ void setup() {
    rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ
    //forced draw:7k/6p1/8/4Q3/pppp4/qqqp4/pppp1PPP/6RK w
    */
-  board = fenToBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq");
+  board = fenToBoard("8/8/3kr3/8/8/8/2K5/8 w ");
   boardUI = new BoardUI(board, width, color(238, 238, 210), color(118, 150, 86));
 
   moveGenerator = new MoveGenerator();
@@ -82,7 +82,7 @@ void draw() {
     }
     return;
   }
-
+  checkGameOver();
   if (!board.whiteTurn && boardUI.animationDone) {
     int depth = board.getPieceCount() <=4?5:4;
     t1 = millis()/1000.0;
@@ -150,7 +150,7 @@ void stalemate() {
 }
 void drawByRule() {
   gameOver=true;
-  println("Draw By Repetposition or Fifty Move Rule.");
+  println("Draw By Repetition or Fifty Move Rule.");
   gameOverText = "Draw!\n Press R to restart.";
 }
 void flag(String playerName, boolean draw) {
@@ -185,10 +185,10 @@ boolean checkGameOver() {
     drawByRule();
     return true;
   } else if (whiteTimeLeft<=0) {
-    flag("Black", board.hasCheckmatingMaterial(false));
+    flag("Black", false);
     return true;
   } else if (blackTimeLeft<=0) {
-    flag("White", board.hasCheckmatingMaterial(false));
+    flag("White", false);
     return true;
   }
 

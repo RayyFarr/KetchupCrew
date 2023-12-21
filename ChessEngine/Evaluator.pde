@@ -30,7 +30,6 @@ int evaluate() {
 
   float whiteEndgameWeight = endGamePower(whiteEval-board.pawns[1].numPieces*PAWNVAL);
   float blackEndgameWeight =endGamePower(blackEval-board.pawns[0].numPieces*PAWNVAL);
-
   whiteEval+=sweep(1, 0, whiteEval, blackEval, whiteEndgameWeight);
   blackEval+=sweep(0, 1, blackEval, whiteEval, blackEndgameWeight);
 
